@@ -1,11 +1,12 @@
 # RailsConf 2025: OpenTelemetry Workshop
 
-**This repository is still a work in progress. You may need to pull before the**
-**workshop to get the latest copy.**
-
 This repository accompanies a workshop titled "How to instrument your Rails app
-with OpenTelemetry" that will be held at RailsConf 2025 in Philadelphia on
+with OpenTelemetry" held at RailsConf 2025 in Philadelphia on
 July 9, 2025.
+
+* [Recording](https://www.youtube.com/watch?v=E_rKGBN_caQ&ab_channel=Confreaks)
+* [Slides](https://docs.google.com/presentation/d/1MiEN04JWhXHLzdV2gYbe2EuSJkfXBubb6O_hYkmeyG8/edit?usp=sharing) 
+* [Gist with code snippets](https://gist.github.com/kaylareopelle/4631c2b53b24a087af8724b794cc5066)
 
 ## Overview
 
