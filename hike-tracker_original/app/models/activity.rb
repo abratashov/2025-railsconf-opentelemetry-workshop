@@ -8,13 +8,16 @@ class Activity < ApplicationRecord
   validates :end_time, absence: { if: :in_progress?, message: '- It looks like this activity is still in progress. Uncheck the "In Progress" box to add your end time.' }
   validates :name, presence: true
 
-  after_save :check_progress, :check_end_time
+  after_save :check_progress, :check_end_time, :count_completions
 
   def duration
-    if end_time
-      ActiveSupport::Duration.build(end_time - start_time)
-    else
-      ActiveSupport::Duration.build(Time.now - start_time)
+    APP_TRACER.in_span("Activity duration", attributes: { 'end_time' => end_time.to_s }) do
+      # sleep 1
+      if end_time
+        ActiveSupport::Duration.build(end_time - start_time)
+      else
+        ActiveSupport::Duration.build(Time.now - start_time)
+      end
     end
   end
 
@@ -26,5 +29,11 @@ class Activity < ApplicationRecord
 
   def check_end_time
     end_time = Time.now if !in_progress && end_time.nil?
+  end
+
+  def count_completions
+    return if in_progress
+
+    HIKE_COUNTER.add(1, attributes: { "user_id" => user.id, "location" => trail.location, "duration" => duration, test: 'test' })
   end
 end

@@ -18,3 +18,19 @@ group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 end
+
+# ----------------------------------------------- OpenTelemetry
+
+# Traces
+gem "opentelemetry-sdk", "~> 1.12"
+gem "opentelemetry-exporter-otlp", "~> 0.34.0"
+gem "opentelemetry-instrumentation-all", "~> 0.94.0"
+
+# Metrics
+gem "opentelemetry-metrics-sdk"
+gem "opentelemetry-exporter-otlp-metrics"
+
+# Logs
+gem "opentelemetry-logs-sdk"
+gem "opentelemetry-exporter-otlp-logs"
+gem "opentelemetry-instrumentation-logger"

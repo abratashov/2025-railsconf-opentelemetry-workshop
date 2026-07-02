@@ -1,5 +1,6 @@
 class ActivitiesController < ApplicationController
   before_action :set_activity, only: %i[ show edit update destroy ]
+  before_action :add_location_attribute_to_span, only: %i[ show ]
 
   # GET /activities or /activities.json
   def index
@@ -12,6 +13,7 @@ class ActivitiesController < ApplicationController
     # This will help see how errors are reported by OpenTelemetry
     test = rand(10)
     if test < 7
+      @activity.duration
       render :show
     else
       raise "Bad luck"
@@ -78,5 +80,11 @@ class ActivitiesController < ApplicationController
     # Only allow a list of trusted parameters through.
     def activity_params
       params.expect(activity: [ :start_time, :end_time, :user_id, :trail_id, :in_progress, :name ])
+    end
+
+    def add_location_attribute_to_span
+      OpenTelemetry::Trace.current_span.add_attributes(
+        { "activity.trail.location" => @activity.trail.location }
+      )
     end
 end
