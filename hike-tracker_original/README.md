@@ -172,3 +172,18 @@ topk(
 ```
 
 <img src="docs/images/grafana_pie_charts.png" alt="Grafana Dashboard" width="900">
+
+### Traces gathering
+
+`OTel` gather traces and spans across multiple services. When one request calls another one, it adds a [W3C trace-context](https://www.w3.org/TR/trace-context). Then other services with the same `OTel` settings get it from the request and propagates to the next service call.
+
+```rb
+class ActivitiesController < ApplicationController
+  #...
+  def show
+    Rails.logger.info(request.headers["traceparent"]) # in case of request from the initial service
+    span = OpenTelemetry::Trace.current_span
+    Rails.logger.info 'TraceID ---------------------------------------------------------'
+    Rails.logger.info(trace_id: span.context.hex_trace_id, span_id: span.context.hex_span_id)
+    # ...
+```

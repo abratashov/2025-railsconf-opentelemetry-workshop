@@ -9,6 +9,10 @@ class ActivitiesController < ApplicationController
 
   # GET /activities/1 or /activities/1.json
   def show
+    span = OpenTelemetry::Trace.current_span
+    Rails.logger.info 'TraceID ---------------------------------------------------------'
+    Rails.logger.info(trace_id: span.context.hex_trace_id, span_id: span.context.hex_span_id)
+
     # Randomly raise an error
     # This will help see how errors are reported by OpenTelemetry
     test = rand(10)
