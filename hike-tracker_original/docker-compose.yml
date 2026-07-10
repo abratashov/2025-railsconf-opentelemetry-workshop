@@ -1,0 +1,61 @@
+services:
+  grafana: # Telemetry UI
+    image: grafana/grafana:latest # 13.1
+    container_name: grafana
+    ports:
+      - "3333:3000" # Web UI
+    depends_on:
+      - tempo
+
+  loki: # Logs
+    image: grafana/loki:latest # 3.7.3
+    container_name: loki
+    ports:
+      - "3100:3100" # HTTP API
+    command:
+      - "-config.file=/etc/loki/local-config.yaml"
+
+  otel-collector: # OpenTelemetry Hub
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command:
+      - "--config=/etc/otelcol-contrib/config.yaml"
+    depends_on:
+      - tempo
+    volumes:
+      - ./config/otel-collector.yml:/etc/otelcol-contrib/config.yaml
+      - ./otel-data:/otel-data
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Web UI
+
+  prometheus: # Metrics
+    image: prom/prometheus:latest # 3.13
+    container_name: prometheus
+    ports:
+      - "9090:9090" # Web UI / HTTP API
+    volumes:
+      - ./config/otel-prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    depends_on:
+      - otel-collector
+
+  pyroscope: # Continuous profiling
+    image: grafana/pyroscope:latest # 2.1
+    container_name: pyroscope
+    ports:
+      - "4040:4040" # Web UI / HTTP API
+
+  tempo: # Traces
+    image: grafana/tempo:latest # 2.7.2
+    container_name: tempo
+    command:
+      - "-config.file=/etc/tempo.yaml"
+    ports:
+      - "3200:3200" # HTTP API / Query API
+      - "4319:4317" # OTLP gRPC ingestion
+    volumes:
+      - ./config/otel-tempo.yml:/etc/tempo.yaml
+      - ./tempo-data:/var/tempo

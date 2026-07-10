@@ -1,0 +1,385 @@
+apiVersion: dashboard.grafana.app/v2
+kind: Dashboard
+metadata:
+  name: ad59k25
+spec:
+  annotations:
+    - kind: AnnotationQuery
+      spec:
+        builtIn: true
+        enable: true
+        hide: true
+        iconColor: rgba(0, 211, 255, 1)
+        name: Annotations & Alerts
+        query:
+          datasource:
+            name: '-- Grafana --'
+          group: grafana
+          kind: DataQuery
+          spec: {}
+          version: v0
+  cursorSync: 'Off'
+  description: |-
+    1. Traffic Distribution
+    2. Latency Distribution
+    3. Error Distribution
+    4. Dependency Distribution
+    5. Request Outcome (Apdex)
+  editable: true
+  elements:
+    panel-1:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bfqwzb2lqqyo0a
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      editorMode: code
+                      expr: |-
+                        topk(
+                          10,
+                          sum by (controller_action) (
+                            increase(
+                              http_server_request_duration_milliseconds_count{
+                                exported_job="hike-tracker"
+                              }[$__range]
+                            )
+                          )
+                        )
+                      instant: false
+                      legendFormat: __auto
+                      range: true
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: ''
+        id: 1
+        links: []
+        title: 1. Traffic Distribution
+        vizConfig:
+          group: piechart
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  fixedColor: '#73BF69'
+                  mode: palette-classic
+                custom:
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+              overrides: []
+            options:
+              legend:
+                displayMode: list
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              pieType: pie
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              sort: desc
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.1.0
+    panel-2:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bfqwzb2lqqyo0a
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      editorMode: code
+                      expr: |-
+                        topk(
+                          10,
+                          sum by (controller_action) (
+                            increase(
+                              http_server_request_duration_milliseconds_sum{
+                                exported_job="hike-tracker"
+                              }[$__range]
+                            )
+                          )
+                        )
+                      instant: false
+                      legendFormat: __auto
+                      range: true
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: ''
+        id: 2
+        links: []
+        title: 2. Latency Distribution
+        vizConfig:
+          group: piechart
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  fixedColor: '#73BF69'
+                  mode: palette-classic
+                custom:
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+              overrides: []
+            options:
+              legend:
+                displayMode: list
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              pieType: pie
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              sort: desc
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.1.0
+    panel-3:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bfqwzb2lqqyo0a
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      editorMode: code
+                      expr: |-
+                        topk(
+                          10,
+                          sum by (exception_type) (
+                            increase(
+                              application_exceptions_total{
+                                exported_job="hike-tracker"
+                              }[$__range]
+                            )
+                          )
+                        )
+                      range: true
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: ''
+        id: 3
+        links: []
+        title: 3. Error Distribution
+        vizConfig:
+          group: piechart
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  fixedColor: '#73BF69'
+                  mode: palette-classic
+                custom:
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                displayName: ${__field.labels.exception_type}
+              overrides: []
+            options:
+              legend:
+                displayMode: list
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              pieType: pie
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              sort: desc
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.1.0
+    panel-4:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bfqwzb2lqqyo0a
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      editorMode: code
+                      expr: |-
+                        topk(
+                          10,
+                          sum by (dependency) (
+                            increase(
+                              traces_span_metrics_duration_milliseconds_sum{
+                                dependency!=""
+                              }[$__range]
+                            )
+                          )
+                        )
+                      instant: false
+                      legendFormat: __auto
+                      range: true
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: ''
+        id: 4
+        links: []
+        title: 4. Dependency Distribution
+        vizConfig:
+          group: piechart
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  fixedColor: '#73BF69'
+                  mode: palette-classic
+                custom:
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+              overrides: []
+            options:
+              legend:
+                displayMode: list
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              pieType: pie
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              sort: desc
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.1.0
+  layout:
+    kind: GridLayout
+    spec:
+      items:
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-1
+            height: 8
+            width: 12
+            x: 0
+            'y': 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-2
+            height: 8
+            width: 12
+            x: 12
+            'y': 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-3
+            height: 8
+            width: 12
+            x: 0
+            'y': 8
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-4
+            height: 8
+            width: 12
+            x: 12
+            'y': 8
+  links: []
+  liveNow: false
+  preferences:
+    layout:
+      kind: GridLayout
+      spec:
+        items: []
+  preload: false
+  tags: []
+  timeSettings:
+    autoRefresh: ''
+    autoRefreshIntervals:
+      - 5s
+      - 10s
+      - 30s
+      - 1m
+      - 5m
+      - 15m
+      - 30m
+      - 1h
+      - 2h
+      - 1d
+    fiscalYearStartMonth: 0
+    from: now-24h
+    hideTimepicker: false
+    timezone: browser
+    to: now
+  title: Application State
+  variables: []

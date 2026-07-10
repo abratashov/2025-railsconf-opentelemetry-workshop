@@ -1,0 +1,120 @@
+# OpenTelemetry Collector configuration.
+#
+# Exports telemetry to:
+# - File (local debugging)
+# - Loki (logs)
+# - Prometheus (metrics)
+# - Tempo (traces)
+
+connectors:
+  spanmetrics:
+    histogram:
+      explicit:
+        # Request latency buckets used for Prometheus histograms
+        # and P50/P95/P99 latency calculations.
+        buckets: [5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2.5s, 5s]
+
+    # Additional metric dimensions generated from spans.
+    #
+    # The "dependency" dimension is used by the Grafana
+    # "Dependency Distribution" dashboard to group outbound calls
+    # by external service or system.
+    dimensions:
+      - name: dependency
+      - name: db.system
+      - name: server.address
+      - name: http.request.method
+      - name: http.route
+      - name: peer.service
+      - name: messaging.system
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+  # Normalize different span attributes into a single "dependency"
+  # attribute so external systems can be aggregated consistently.
+  #
+  # Extend this mapping as new dependencies are introduced
+  # (PostgreSQL, Redis, Elasticsearch, Kafka, RabbitMQ, S3,
+  # Stripe, OpenAI, internal microservices, etc.).
+  transform/dependency:
+    trace_statements:
+      - context: span
+        statements:
+          - set(attributes["dependency"], attributes["db.system"]) where attributes["db.system"] != nil
+          - set(attributes["dependency"], attributes["server.address"]) where attributes["server.address"] != nil
+          - set(attributes["dependency"], attributes["peer.service"]) where attributes["peer.service"] != nil
+          - set(attributes["dependency"], attributes["messaging.system"]) where attributes["messaging.system"] != nil
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  file:
+    path: /otel-data/traces.json
+
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+
+  otlp_grpc/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+service:
+  pipelines:
+    logs:
+      exporters: [debug, file, otlphttp/loki]
+      processors: [batch]
+      receivers: [otlp]
+
+    metrics:
+      exporters: [debug, file, prometheus]
+      processors: [batch]
+      receivers: [otlp, spanmetrics]
+
+    traces:
+      exporters: [debug, file, otlp_grpc/tempo, spanmetrics]
+      processors: [transform/dependency, batch]
+      receivers: [otlp]
+
+
+# Possible exporters:
+#
+# alibabacloud_logservice     google_cloud_storage        prometheus
+#                             googlecloud                 prometheus_remote_write
+# awscloudwatchlogs           googlecloudpubsub           prometheusremotewrite
+# awsemf                      googlecloudstorage
+# awskinesis                  googlemanagedprometheus     pulsar
+# awss3                                                   rabbitmq
+# awsxray                     honeycomb_marker            sentry
+#                             honeycombmarker             signalfx
+# azure_blob                                              splunk_hec
+# azureblob                   influxdb                    stef
+# azuredataexplorer           kafka                       sumologic
+# azuremonitor                load_balancing              syslog
+#                             loadbalancing               tencentcloud_logservice
+# bmc_helix                   logicmonitor                tinybird
+# bmchelix                    logzio                      zipkin
+#                             mezmo
+# cassandra                   nop
+# clickhouse                  opensearch
+# coralogix                   otelarrow
+# datadog
+# dataset                     otlp
+# debug                       otlp_grpc
+# doris                       otlp_http
+# elasticsearch               otlphttp
+# faro
+# file
