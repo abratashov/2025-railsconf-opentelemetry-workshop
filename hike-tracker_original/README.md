@@ -173,6 +173,34 @@ topk(
 
 <img src="docs/images/grafana_pie_charts.png" alt="Grafana Dashboard" width="900">
 
+### Measuring Ruby code
+
+To measure the bottleneck at Ruby services, we can use a simple tool like [rbspy](https://rbspy.github.io/):
+```sh
+cargo install rbspy
+
+# Enable profiling if it is disabled
+cat /proc/sys/kernel/yama/ptrace_scope
+sudo sysctl kernel.yama.ptrace_scope=0
+cat /proc/sys/kernel/yama/ptrace_scope
+
+# Measure Rails
+rails s
+ps aux | grep puma
+rbspy record --pid 1523583
+# Open flamegraph.svg in the Browser
+
+# Measure simple Ruby script
+rbspy record -- ruby app/services/heavy_report_service.rb
+
+# Disable profiling (set it back)
+cat /proc/sys/kernel/yama/ptrace_scope
+sudo sysctl kernel.yama.ptrace_scope=1
+cat /proc/sys/kernel/yama/ptrace_scope
+```
+
+<img src="docs/images/rbspy_flamegraph.png" alt="rbspy flamegraph" width="900">
+
 ### Traces gathering
 
 `OTel` gather traces and spans across multiple services. When one request calls another one, it adds a [W3C trace-context](https://www.w3.org/TR/trace-context). Then other services with the same `OTel` settings get it from the request and propagates to the next service call.
