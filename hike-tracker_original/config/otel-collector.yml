@@ -39,6 +39,33 @@ receivers:
 processors:
   batch:
 
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # Production tail sampling: 100% errors, 100% slow requests, 5% of all other traces.
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 50000
+    expected_new_traces_per_sec: 100
+
+    policies:
+      - name: errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+
+      - name: slow_requests
+        type: latency
+        latency:
+          threshold_ms: 500
+
+      - name: probabilistic
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 5
+
   # Normalize different span attributes into a single "dependency"
   # attribute so external systems can be aggregated consistently.
   #
@@ -86,9 +113,8 @@ service:
 
     traces:
       exporters: [debug, file, otlp_grpc/tempo, spanmetrics]
-      processors: [transform/dependency, batch]
+      processors: [batch, memory_limiter, tail_sampling, transform/dependency]
       receivers: [otlp]
-
 
 # Possible exporters:
 #
