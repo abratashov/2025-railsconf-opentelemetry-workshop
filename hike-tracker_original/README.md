@@ -215,3 +215,94 @@ class ActivitiesController < ApplicationController
     Rails.logger.info(trace_id: span.context.hex_trace_id, span_id: span.context.hex_span_id)
     # ...
 ```
+
+### RCA
+
+RCA stands for Root Cause Analysis, it's the process of finding the underlying reason why an incident occurred, rather than just fixing the immediate symptom.
+
+```sh
+# Example
+Issue: Users cannot log in.
+  => Symptom: HTTP 500
+    => Immediate cause: Database connection failed.
+      => Root cause: A firewall rule deployed at 14:32 blocked connections from the application to PostgreSQL.
+```
+
+The RCA is about answering "Why did this happen?", not just "What failed?".
+
+Typical RCA process:
+```
+Detect the incident
+  Alert fires.
+  Users report a problem.
+
+Assess the impact
+  Which services?
+  How many users?
+  How long?
+
+Investigate
+  Metrics (Prometheus)
+  Logs (Loki)
+  Traces (Tempo)
+
+Identify the root cause
+  Deployment?
+  Infrastructure?
+  Code bug?
+  Configuration?
+  External dependency?
+
+Resolve
+  Roll back
+  Fix configuration
+  Patch code
+
+Prevent recurrence
+  Add tests
+  Improve monitoring
+  Add alerts
+  Update runbooks
+```
+
+```sh
+# Example
+Imagine your "Application State" dashboard shows:
+🔴 Request Outcome: Errors increased from 0.1% to 15%.
+🔴 Error Distribution: PG::ConnectionBad is now the top exception.
+🟡 Latency Distribution: OrdersController#create latency has increased dramatically.
+🔵 Dependency Distribution: PostgreSQL accounts for 80% of request time.
+
+Steps
+
+1. Click the PG::ConnectionBad pie slice.
+2. Open the corresponding traces in Tempo.
+3. See repeated database connection failures.
+4. Check Loki logs and find: connection refused
+5. Check Kubernetes events and discover the PostgreSQL pod restarted after a failed configuration change.
+
+Root cause: An incorrect PostgreSQL configuration deployed at 14:32 caused the database to reject new client connections.
+Action items:
+  Add configuration validation before deployment.
+  Add an alert for failed PostgreSQL readiness probes.
+  Test configuration changes in staging.
+```
+
+"We restarted the service."
+=>
+"Why did we need to restart it in the first place, and how can we prevent this from happening again?"
+
+### Videos
+
+* [Server Monitoring // Prometheus and Grafana Tutorial](https://www.youtube.com/watch?v=9TJx7QTrTyo)
+
+### Online Tools
+
+* [Grafana dashboards](https://grafana.com/grafana/dashboards)
+* [OpenTelemetry Config Generator](https://tracekit.dev/tools/otel-config-generator)
+* [Trace Visualizer](https://tracekit.dev/tools/trace-visualizer)
+* [JSON Crack](https://jsoncrack.com/editor)
+
+### Other tools
+
+* [Grafana Alloy](https://github.com/grafana/alloy) - modern native Grafana substitution for [opentelemetry-collector](https://github.com/open-telemetry/opentelemetry-collector).
