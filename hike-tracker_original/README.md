@@ -102,7 +102,7 @@ rails s
 # admin/admin
 
 # OTel Collector http://localhost:8889/metrics
-# Prometheus UI http://localhost:9090
+# Prometheus UI http://localhost:9090/metrics
 # Loki http://localhost:3100/metrics
 # Pyroscope http://localhost:4040
 ```
@@ -172,6 +172,30 @@ topk(
 ```
 
 <img src="docs/images/grafana_pie_charts.png" alt="Grafana Dashboard" width="900">
+
+### Custom Business Metrics
+
+Add extra metrics to `app/metrics/activities_metrics.rb` and then call it on event like here:
+```rb
+# app/controllers/activities_controller.rb
+ActivitiesMetrics.watched.add(1, attributes: { location: ['EU', 'US'].sample })
+ActivitiesMetrics.records_total.add(1, attributes: { location: ['EU', 'US'].sample })
+ActivitiesMetrics.saved.add(1)
+```
+Now we can build custom `Pie Chart`:
+```sql
+-- Prometheus:
+
+sum by(location) (
+  increase(activities_watched_total[1h])
+)
+-- =>
+-- {location="EU"} 17.5
+-- {location="US"} 15.5
+
+{__name__=~".*activities.*"}
+-- => All activities records
+```
 
 ### Measuring Ruby code
 

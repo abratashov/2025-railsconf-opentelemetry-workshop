@@ -9,6 +9,8 @@ class ActivitiesController < ApplicationController
 
   # GET /activities/1 or /activities/1.json
   def show
+    ActivitiesMetrics.watched.add(1, attributes: { location: ['EU', 'US'].sample })
+
     span = OpenTelemetry::Trace.current_span
     Rails.logger.info 'TraceID ---------------------------------------------------------'
     Rails.logger.info(trace_id: span.context.hex_trace_id, span_id: span.context.hex_span_id)
@@ -43,6 +45,7 @@ class ActivitiesController < ApplicationController
 
     respond_to do |format|
       if @activity.save
+        ActivitiesMetrics.records_total.add(1, attributes: { location: ['EU', 'US'].sample })
         format.html { redirect_to @activity, notice: "Activity was successfully created." }
         format.json { render :show, status: :created, location: @activity }
       else
@@ -56,6 +59,7 @@ class ActivitiesController < ApplicationController
   def update
     respond_to do |format|
       if @activity.update(activity_params)
+        ActivitiesMetrics.saved.add(1)
         format.html { redirect_to @activity, notice: "Activity was successfully updated." }
         format.json { render :show, status: :ok, location: @activity }
       else
