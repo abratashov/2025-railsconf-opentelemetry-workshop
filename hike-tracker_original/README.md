@@ -294,7 +294,7 @@ Action items:
 
 ### Videos
 
-* [Server Monitoring // Prometheus and Grafana Tutorial](https://www.youtube.com/watch?v=9TJx7QTrTyo)
+* [Server Monitoring / Prometheus and Grafana Tutorial](https://www.youtube.com/watch?v=9TJx7QTrTyo)
 
 ### Online Tools
 
@@ -306,3 +306,13 @@ Action items:
 ### Other tools
 
 * [Grafana Alloy](https://github.com/grafana/alloy) - modern native Grafana substitution for [opentelemetry-collector](https://github.com/open-telemetry/opentelemetry-collector).
+* [Grafana Beyla (eBPF)](https://grafana.com/oss/beyla-ebpf)
+
+### Free onnline services
+
+* [Sentry](https://sentry.io/pricing)
+* [NewRelic](https://newrelic.com/pricing)
+* [Grafana Cloud](https://grafana.com/pricing)
+* [PagerDuty](https://www.pagerduty.com/pricing/incident-management)
+* [EdgeDelta](https://edgedelta.com/pricing)
+* [BetterStack](https://betterstack.com/pricing)
