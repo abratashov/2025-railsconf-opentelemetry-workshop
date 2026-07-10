@@ -1,0 +1,154 @@
+services:
+  grafana:
+    container_name: grafana
+    depends_on:
+      loki:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+      tempo:
+        condition: service_healthy
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: change-me
+      GF_SECURITY_ADMIN_USER: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - http://localhost:3000/api/health
+      timeout: 10s
+    image: grafana/grafana:13.1.0
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  loki:
+    command:
+      - '-config.file=/etc/loki/local-config.yaml'
+    container_name: loki
+    expose:
+      - '3100'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - http://localhost:3100/ready
+      timeout: 10s
+    image: grafana/loki:3.7.3
+    restart: unless-stopped
+    volumes:
+      - ./config/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+
+  otel-collector:
+    command:
+      - '--config=/etc/otelcol-contrib/config.yaml'
+    container_name: otel-collector
+    depends_on:
+      tempo:
+        condition: service_healthy
+    expose:
+      - '4317'
+      - '4318'
+      - '8889'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - http://localhost:8889/metrics
+      timeout: 10s
+    image: otel/opentelemetry-collector-contrib:0.131.0
+    restart: unless-stopped
+    volumes:
+      - ./config/otel-collector.yml:/etc/otelcol-contrib/config.yaml:ro
+
+  prometheus:
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    container_name: prometheus
+    depends_on:
+      otel-collector:
+        condition: service_healthy
+    expose:
+      - '9090'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - http://localhost:9090/-/healthy
+      timeout: 10s
+    image: prom/prometheus:v3.13.0
+    restart: unless-stopped
+    volumes:
+      - ./config/otel-prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  pyroscope:
+    container_name: pyroscope
+    expose:
+      - '4040'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - http://localhost:4040/ready
+      timeout: 10s
+    image: grafana/pyroscope:1.14.0
+    restart: unless-stopped
+    volumes:
+      - pyroscope-data:/var/lib/pyroscope
+
+  tempo:
+    command:
+      - '-config.file=/etc/tempo.yaml'
+    container_name: tempo
+    expose:
+      - '3200'
+      - '4317'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+        - CMD
+        - wget
+        - '--spider'
+        - '-q'
+        - http://localhost:3200/ready
+      timeout: 10s
+    image: grafana/tempo:2.7.2
+    restart: unless-stopped
+    volumes:
+      - ./config/otel-tempo.yml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+
+version: '3.9'
+volumes:
+  grafana-data: null
+  loki-data: null
+  prometheus-data: null
+  pyroscope-data: null
+  tempo-data: null

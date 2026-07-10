@@ -86,6 +86,8 @@ ls -ld otel-data tempo-data
 ### Run
 
 ```sh
+# This is only for development demo becuause each Docker restart refresh & remove old data & configs
+# For production, use separate server with observability tools like here: docker-compose.prod.yml
 docker compose up
 
 # Add to config/initializers/opentelemetry.rb:
